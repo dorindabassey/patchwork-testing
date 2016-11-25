@@ -1,0 +1,21 @@
+Patchwork
+=========
+
+Patchwork is a web patch tracking system for projects using a mailing list for
+contributions and reviews.
+
+This fork from the freedesktop.org edition of patchwork is hosted and used by
+OpenEmbedded at
+https://patchwork.openembedded.org/
+
+
+Where to Send Patches
+=====================
+
+Patchwork patches must be sent to the Yocto Project mailing list including
+the "[patchwork]" prefix in the message subject.
+For example: [yocto][patchwork][patch 1/2] file.txt: change description
+
+    Git repository: git://git.yoctoproject.org/patchwork
+    Mailing list: yocto@yoctoproject.org
+
