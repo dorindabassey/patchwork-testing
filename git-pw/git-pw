@@ -126,6 +126,11 @@ class Command(object):
             'need_project' : False,
             'need_auth'    : False,
         },
+        'bundle': {
+            'need_git_repo': True,
+            'need_project' : False,
+            'need_auth'    : False,
+        },
         'list': {
             'need_git_repo': True,
             'need_project' : True,
@@ -295,13 +300,25 @@ class Patch(RestObject):
     def url(self, url='/'):
         return '/patches/' + str(self.id) + url
 
+class Bundle(RestObject):
+
+    def __init__(self, patchwork, bundle_name, user):
+        super(Bundle, self).__init__(patchwork)
+        self.bundle_name = str(bundle_name)
+        self.user = str(user)
+
+    def url(self, url='/'):
+        return '/bundle/' + self.user + '/' + self.bundle_name + url
+
 
 class Patchwork(object):
+
+    api_version= 'api/1.0'
 
     def __init__(self, web_root, project_linkname, user):
         if not web_root.endswith('/'):
             web_root += '/'
-        self.api_base = web_root + 'api/1.0'
+        self.api_base = web_root + self.api_version
         self.web_root = web_root
         self.project = Project(self, project_linkname)
         self.user = user
@@ -371,6 +388,9 @@ class Patchwork(object):
 
     def get_patch(self, patch_id):
         return Patch(self, patch_id)
+
+    def get_bundle(self, bundle_name, name):
+        return Bundle(self, bundle_name, name)
 
 
 class Terminal(object):
@@ -578,21 +598,21 @@ class GitPatchwork(object):
         # auth mechanism. In any case, using HTTPS is a must.
         username = None
         password = None
-        user = None
         try:
             username = config.get(section, 'user')
             password = config.get(section, 'password')
-            user = User(username, password)
         except:
             pass
 
-        if not user and self.cmd.need_auth:
+        if not password and self.cmd.need_auth:
             die('No authentication configured.\n\n'
                 "Please set up credentials, e.g.:\n\n"
                 "   git config patchwork.%(config)s.user myusername\n"
                 "   git config patchwork.%(config)s.password mypassword\n" % {
                     'config': self.cmd.config,
                 })
+
+        user = User(username, password)
 
         self.pw = Patchwork(web_root, project, user)
         self.pw.setup()
@@ -678,6 +698,20 @@ class GitPatchwork(object):
             if e.status_code != 404:
                 raise
             die('No patch with id %d.' % self.cmd.patch_id)
+
+    def do_bundle(self):
+        user = self.cmd.username or self.pw.user.username
+        if not user:
+            die('Either define a patchwork user at .git/config or set it through --username')
+
+        bundle = self.pw.get_bundle(self.cmd.bundle_name, user)
+
+        try:
+            return self._print_mbox(bundle.absolute_url('/mbox/').replace(self.pw.api_version,''))
+        except HttpError as e:
+            if e.status_code != 404:
+                raise
+            die('No user %s bundle with name %s.' % (self.cmd.user, self.cmd.bundle_name))
 
     def do_list(self):
         project = self.pw.get_project()
@@ -972,6 +1006,16 @@ if __name__ == '__main__':
         type=int, help='the patch id to apply')
 
     parser_add_mbox_options(mbox_patch_parser)
+
+    # bundle
+    bundle_parser = subparsers.add_parser('bundle',
+        help='retrieve a mbox file of a bundle and print it on stdout')
+    bundle_parser.add_argument('--username', '-u', metavar='username',
+        type=str, help='the patchwork\'s user that created the bundle, use git\'s configured if omitted')
+    bundle_parser.add_argument('bundle_name', metavar='bundle_name',
+        type=str, help='the bundle to retrieve')
+
+    parser_add_mbox_options(bundle_parser)
 
     # poll-events
     poll_events_parser = subparsers.add_parser('poll-events',
