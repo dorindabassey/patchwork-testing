@@ -221,6 +221,7 @@ class MailContent:
         self.revision = None
         self.patch_order = 1    # place of the patch in the series
         self.filenames = []     # files touched by a diff
+        self.msgid = None
 
 
 def build_references_from_headers(in_reply_to, references):
@@ -419,6 +420,18 @@ def find_content(project, mail):
     if is_cover_letter or is_patch:
         msgid = mail.get('Message-Id').strip()
 
+        # check if msgid already exists in db
+        ex_msgid=get_object_by_msgid(Patch, msgid)
+        if not ex_msgid:
+            ex_msgid=get_object_by_msgid(Comment, msgid)
+        if ex_msgid and ex_msgid.content:
+            # modify msgid to allow processing new message only if it
+            # contains different content than existing Patch or Comment
+            if patchbuf and patchbuf!=ex_msgid.content:
+                refs.append(msgid)
+                msgid=datetime.datetime.now().isoformat() + '-' + msgid
+
+        ret.msgid=msgid
         # Series get a generic name when they don't start by a cover letter or
         # when they haven't received the root message yet. Except when it's
         # only 1 patch, then the series takes the patch subject as name.
@@ -762,8 +775,6 @@ def parse_mail(mail):
         LOGGER.error('Failed to find a project for mail')
         return 1
 
-    msgid = mail.get('Message-Id').strip()
-
     (author, save_required) = find_author(mail)
 
     content = find_content(project, mail)
@@ -773,6 +784,7 @@ def parse_mail(mail):
     comment = content.comment
     series = content.series
     revision = content.revision
+    msgid = (content.msgid or mail.get('Message-Id').strip())
 
     series_revision_complete.connect(on_revision_complete)
 
