@@ -21,7 +21,7 @@ from django.conf import settings
 from django.shortcuts import render, render_to_response
 from django.shortcuts import get_object_or_404, get_list_or_404
 from django.views.generic import View
-from patchwork.models import Patch, Project, Bundle,
+from patchwork.models import Patch, Project, Bundle
 from patchwork.models import Series, SeriesRevision, TestResult
 from patchwork.requestcontext import PatchworkRequestContext
 from patchwork.forms import PatchForm, CreateBundleForm
