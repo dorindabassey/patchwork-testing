@@ -1,0 +1,97 @@
+#!/bin/bash
+#
+# Git post-receive hook to update Patchwork patches after Git pushes
+#
+# Copyright © 2010 martin f. krafft <madduck@madduck.net>
+# Released under the GNU General Public License v2 or later.
+set -eu
+
+#TODO: the state map should really live in the repo's git-config
+STATE_MAP="refs/heads/master:Accepted"
+#
+# ignore all commits already present in these refs
+# e.g.,
+#   EXCLUDE="refs/heads/upstream refs/heads/other-project"
+#
+EXCLUDE=""
+PWDIR=/home/oe-patchwork/patchwork/patchwork
+
+if [ -d "$PWDIR" ]; then
+        if [ ! -w "$PWDIR" ]; then
+                echo "E: Post-receive hook has no write permissions in patchwork path." >&2
+                exit 1
+        fi
+else
+        echo "E: Invalid patchwork path in post-receive hook" >&2
+        exit 1
+fi
+
+do_exit=0
+trap "do_exit=1" INT
+
+# Create a folder for the post-receive hook logs
+ERR_LOG_FILE=$PWDIR/post-receive_logs/post_receive.log
+if [ ! -f "$ERR_LOG_FILE" ]; then
+    mkdir -p "`dirname \"$ERR_LOG_FILE\"`" 2>/dev/null
+fi
+
+get_patchwork_hash()
+{ 
+  local hash
+  hash=$(git show $1 | python $PWDIR/parser.py --hash)
+  echo $hash
+  test -n "$hash"
+}
+
+get_patch_id()
+{
+  local id
+  id=$($PWDIR/bin/pwclient info -h $1 2>>$ERR_LOG_FILE \
+    | sed -rne 's,- id[[:space:]]*: ,,p')
+  echo $id
+  test -n "$id"
+}
+
+set_patch_state()
+{
+  $PWDIR/bin/pwclient update -s $2 -c $3 $1 2>>$ERR_LOG_FILE
+}
+
+update_patches()
+{
+  local cnt; cnt=0
+  for rev in $(git rev-parse --not ${EXCLUDE} |
+               git rev-list --stdin --no-merges --reverse ${1}..${2}); do
+    if [ X"$do_exit" = X"1" ]; then
+      echo "$(date) I: exiting..." >> $ERR_LOG_FILE 2>/dev/null
+      break
+    fi
+    hash=$(get_patchwork_hash $rev) \
+      || { echo "$(date) E: failed to hash rev $rev." >> $ERR_LOG_FILE 2>/dev/null; continue; }
+    id=$(get_patch_id $hash) \
+      || { echo "$(date) E: failed to find patch for rev $rev." >> $ERR_LOG_FILE 2>/dev/null; continue; }
+    reason="$(set_patch_state $id $3 $rev)" \
+      || { echo "$(date) E: failed to update patch ID-$id${reason:+: $reason}." >> $ERR_LOG_FILE- 2>/dev/null; continue; }
+    echo "$(date) I: patch ID-$id was succesfully updated to status $3 using commit $rev." >> $ERR_LOG_FILE 2>/dev/null
+    cnt=$(($cnt + 1))
+  done
+  echo "$(date) I: $cnt patch(es) updated to state $3." >> $ERR_LOG_FILE 2>/dev/null
+}
+
+while read oldrev newrev refname; do
+  found=0
+  for i in $STATE_MAP; do
+    key="${i%:*}"
+    if [ "$key" = "$refname" ]; then
+          echo "$(date) I: Started patch-update attempt using commit $newrev." >> $ERR_LOG_FILE 2>/dev/null
+      update_patches $oldrev $newrev ${i#*:} >&- 2>&- &
+      found=1
+      break
+    fi
+  done
+  if [ $found -eq 0 ]; then
+    echo "$(date) E: STATE_MAP has no mapping for branch $refname" >> $ERR_LOG_FILE 2>/dev/null
+  fi
+done
+
+
