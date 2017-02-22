@@ -591,7 +591,7 @@ def find_patch_for_comment(project, refs):
 
 
 split_re = re.compile(r'[,\s]+')
-patch_pref = re.re.compile(r'^.*\[(\s*PATCH\w+).*', re.I)
+patch_pref = re.compile(r'^.*\[(\s*PATCH\w+).*', re.I)
 
 
 def split_prefixes(prefix):
