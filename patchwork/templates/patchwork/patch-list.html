@@ -38,8 +38,10 @@
 <script type="text/javascript">
 $(document).ready(function() {
     $('#patchlist').stickyTableHeaders();
+    $( '.table' ).tablecheckbox();
 });
 </script>
+<script type="text/javascript" src="{% static "js/jquery.tablecheckbox.js" %}"></script>
 <form method="post">
 {% csrf_token %}
 <input type="hidden" name="form" value="patchlistform"/>
