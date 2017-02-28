@@ -82,6 +82,37 @@ $(document).ready(function(){
         })
     })
 
+    var lastChecked = null
+    var $chkboxes = $( "input[name^='patch_id']" )
+
+    $chkboxes.click(function(e){
+        if(!lastChecked) {
+            lastChecked = this;
+            return;
+        }
+
+        if(e.shiftKey) {
+            var start = $chkboxes.index(this);
+            var end = $chkboxes.index(lastChecked);
+            var min_val = Math.min(start,end)
+            var max_val = Math.max(start,end)+1
+
+            $chkboxes.slice(min_val, max_val).prop('checked', lastChecked.checked);
+            for (i=min_val; i<max_val; ++i){
+                p_id=$chkboxes[i].getAttribute("name")
+                p_id=p_id.match(/\d+/)[0]
+                if (lastChecked.checked){
+                    insert_patchId(p_id)
+                }
+                else{
+                   remove_patchId(p_id)
+                }
+            }
+        }
+
+        lastChecked = this;
+    })
+
     $( "input[name^='patch_id']" ).change(function(){
         patchView.style.display="none"
         uncheck_allSel()
