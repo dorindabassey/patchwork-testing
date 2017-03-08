@@ -6,6 +6,7 @@ $(document).ready(function(){
     patchList=document.getElementById('patches-list')
     patchesInput=$( "input[name^='patches']" )
     seriesForms=document.getElementById('seriesForm')
+    testsView=document.getElementById('tests_results')
     var patches = new Array()
     if ($( patchesInput[0] ).value){
         patches=json_decode($( patchesInput[0] ).value, true)
@@ -123,6 +124,7 @@ $(document).ready(function(){
                 $( patchesInput[i] ).prop('value', JSON.stringify(patches))
             }
             seriesForms.style.display='block'
+            testsView.style.display='none'
         }
         else{
             remove_patchId(p_id)
@@ -131,6 +133,7 @@ $(document).ready(function(){
                     $( patchesInput[i] ).prop('value', "")
                 }
                 seriesForms.style.display='none'
+                testsView.style.display='block'
             }
             else{
                 for (i=0; i<patchesInput.length; ++i){
@@ -156,6 +159,7 @@ $(document).ready(function(){
                     insert_patchId(p_id)
                 }
                 seriesForms.style.display='block'
+                testsView.style.display='none'
             }
             for (i=0; i<patchesInput.length; ++i){
                 $( patchesInput[i] ).prop('value', JSON.stringify(patches))
@@ -163,6 +167,7 @@ $(document).ready(function(){
         }
         else{
             seriesForms.style.display='none'
+            testsView.style.display='block'
             for (i=0; i<patchesInput.length; ++i){
                 $( patchesInput[i] ).prop('value', "")
             }
