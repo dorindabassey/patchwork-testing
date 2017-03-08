@@ -133,6 +133,20 @@ function toggle_headers(link_id, headers_id)
           {% endfor %}
         </table>
         </div>
+        {% if revision.test_results %}
+          <div id="tests_results">
+            <h3>Tests</h3>
+            <div class="well transparent">
+              <div class=pabel-group" id="test-accordion" role="tablist"
+               aria-multiselectable="true" data-toggle="tooltip" title 
+               data-original-title="Click to view/hide available test results">
+                {% for test_result in revision.test_results %}
+                  {% include "patchwork/test-result.html" %}
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        {% endif %}
       </div>
     {% endfor %}
 
