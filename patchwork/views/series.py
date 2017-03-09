@@ -48,7 +48,10 @@ class SeriesView(View):
         revisions = get_list_or_404(SeriesRevision, series=series)
         patchform = PatchForm(project=series.project)
         createbundleform = CreateBundleForm()
-        bundles = Bundle.objects.filter(owner=request.user)
+        if request.user.is_authenticated():
+            bundles = Bundle.objects.filter(owner=request.user)
+        else:
+            bundles=""
         for revision in revisions:
             revision.patch_list = revision.ordered_patches().\
                 select_related('state', 'submitter')
