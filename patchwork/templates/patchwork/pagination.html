@@ -4,7 +4,7 @@
 <div class="paginator">
 {% if page.has_previous %}
  <span class="prev">
-  <a href="{% listurl page=page.previous_page_number %}"
+  <a href="{% listurl page=page.previous_page_number,archive=page.paginator.archive %}"
      title="Previous Page">&laquo;</a></span>
 {% else %}
  <span class="prev-na">&laquo;</span>
@@ -12,7 +12,7 @@
  
 {% if page.paginator.trailing_set %}
  {% for p in page.paginator.trailing_set %}
- <span class="page"><a href="{% listurl page=p %}" >{{ p }}</a></span>
+ <span class="page"><a href="{% listurl page=p,archive=page.paginator.archive %}" >{{ p }}</a></span>
  {% endfor %}
         ...
 {% endif %}
@@ -21,7 +21,7 @@
   {% ifequal p page.number %}
     <span class="curr" title="Current Page">{{ p }}</span>
   {% else %}
-    <span class="page"><a href="{% listurl page=p %}"
+    <span class="page"><a href="{% listurl page=p,archive=page.paginator.archive %}"
      title="Page {{ p }}">{{ p }}</a></span>
   {% endifequal %}
 {% endfor %}
@@ -29,13 +29,13 @@
 {% if page.paginator.leading_set %}
         …
  {% for p in page.paginator.leading_set %}
-    <span class="page"><a href="{% listurl page=p %}">{{ p }}</a></span>
+    <span class="page"><a href="{% listurl page=p,archive=page.paginator.archive %}">{{ p }}</a></span>
  {% endfor %}
 {% endif %}
  
 {% if page.has_next %}
  <span class="next">
-  <a href="{% listurl page=page.next_page_number %}"
+  <a href="{% listurl page=page.next_page_number,archive=page.paginator.archive %}"
    title="Next Page">&raquo;</a>
   </span>
 {% else %}
