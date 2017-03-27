@@ -93,3 +93,4 @@ class Paginator(paginator.Paginator):
         self.leading_set.reverse()
         self.long_page = len(
             self.current_page.object_list) >= LONG_PAGE_THRESHOLD
+        self.archive = request.GET.get("archive")
