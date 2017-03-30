@@ -399,9 +399,9 @@ def find_content(project, mail):
     (x, n) = parse_series_marker(prefixes)
     refs = build_references_list(mail)
     is_root = refs == []
-    is_cover_letter = is_root and x == 0
     patch_prefix = re.match('(\s*\[[^]]*\]\s*)*\[\s*PATCH',
                             mail.get('Subject'))
+    is_cover_letter = x == 0 and patch_prefix
     is_patch = patchbuf is not None and patch_prefix
 
     drop_patch = not is_attachment and \
@@ -441,7 +441,7 @@ def find_content(project, mail):
 
         (ret.series, ret.revision, ret.patch_order, n) = \
             find_series_for_mail(project, series_name, msgid, is_patch,
-                                 ret.patch_order, n, refs)
+                                 ret.patch_order, n, refs, is_cover_letter)
         ret.revision.n_patches = n or 1
 
         date = mail_date(mail)
@@ -535,7 +535,7 @@ def find_patch_order(revisions, previous_patch, order, n_patches):
 #   - we need to create new revisions when the mail is actually a new version
 #     of a previous patch
 def find_series_for_mail(project, name, msgid, is_patch, order, n_patches,
-                         refs):
+                         refs, is_cover_letter):
     if refs == []:
         root_msgid = msgid
     else:
@@ -560,6 +560,20 @@ def find_series_for_mail(project, name, msgid, is_patch, order, n_patches,
                 revision = revision.duplicate(exclude_patches=(order,))
                 # series has been updated, grab the new instance
                 series = revision.series
+            else:
+                try:
+                    prev_patch = SeriesRevisionPatch.objects.get(
+                        revision=revision, order=order).patch
+                    if prev_patch and not prev_patch.msgid == msgid:
+                        # this is a new patch in the thread
+                        revision = revision.duplicate(exclude_patches=(order,))
+                        series = revision.series
+                except SeriesRevisionPatch.DoesNotExist:
+                    pass
+        elif is_cover_letter and not refs == []:
+            revision = revision.duplicate(
+                exclude_patches=range(1, revision.n_patches+1),)
+            series = revision.series
     except IndexError:
         if not name:
             name = SERIES_DEFAULT_NAME
