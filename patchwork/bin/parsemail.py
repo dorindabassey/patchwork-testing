@@ -633,6 +633,12 @@ def clean_subject(subject, drop_prefixes=None):
     in the subject. If drop_prefixes is provided, remove those too,
     comparing case-insensitively."""
 
+    # Check if PATCH prefix is followed by anoter word without a sepparation
+    # space. Add missing space to allow appropriate parsing
+    if patch_pref.match(subject):
+        index = subject.find(patch_pref.match(subject).group(1))
+        subject = subject[:index + 5] + ' ' + subject[index + 5:]
+
     subject = clean_header(subject)
 
     if drop_prefixes is None:
