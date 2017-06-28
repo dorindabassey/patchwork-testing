@@ -60,6 +60,14 @@ set_patch_state()
   $PWDIR/bin/pwclient update -s $2 -c $3 $1 2>>$ERR_LOG_FILE
 }
 
+get_patch_state()
+{
+  state=$($PWDIR/bin/pwclient info $1 2>>$ERR_LOG_FILE \
+    | sed -rne 's,- state[[:space:]]*: ,,p')
+  echo $state
+  test -n "$state"
+}
+
 update_patches()
 {
   local cnt; cnt=0
@@ -82,6 +90,12 @@ update_patches()
       || { echo "$(date) E: failed to hash rev $rev." >> $ERR_LOG_FILE 2>/dev/null; continue; }
     id=$(get_patch_id $hash) \
       || { echo "$(date) E: failed to find patch for rev $rev." >> $ERR_LOG_FILE 2>/dev/null; continue; }
+    state=""
+    state=$(get_patch_state "$id") \
+      || { echo "$(date) E: failed to find current state for patch ID-$id." >> $ERR_LOG_FILE 2>/dev/null; }
+    if [ "$state" = "Accepted" ]; then
+      echo "$(date) I: Skipping patch ID-$id because already is in \"Accepted\" state." >> $ERR_LOG_FILE 2>/dev/null; continue;
+    fi
     reason="$(set_patch_state $id $3 $rev)" \
       || { echo "$(date) E: failed to update patch ID-$id${reason:+: $reason}." >> $ERR_LOG_FILE- 2>/dev/null; continue; }
     echo "$(date) I: patch ID-$id updated to state \"$3\" using commit $rev." >> $ERR_LOG_FILE 2>/dev/null
