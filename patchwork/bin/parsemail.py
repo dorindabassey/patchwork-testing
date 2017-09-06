@@ -678,6 +678,34 @@ prefixes_re = re.compile(r'^\[[^\]]*\]\s*')
 
 
 def strip_prefixes(subject):
+    # get last releases names from Yocto wiki page to keep them
+    # as part of the series name if present, since such patches
+    # are branch-specific
+    try:
+        from lxml import html
+        import requests
+
+        page = requests.get(
+            'https://wiki.yoctoproject.org/wiki/Stable_branch_maintenance')
+        tree = html.fromstring(page.content)
+        branches = tree.xpath('//table[@class="wikitable"]//td[count(\
+//th[contains(., "Branch name")]/preceding-sibling::th)+1]//text()')
+        # uncomment the following line to keep only last two branch names
+        # branches=branches[0:2]
+        branches[:] = [branch.replace('\n', '') for branch in branches]
+        subject = re.sub((r',?\d+/\d+\]'), ']', subject)
+        for branch in branches:
+            if "[" + branch + "]" in subject:
+                prefixes_re = re.compile(r'^\s*\[[^\]]*\]\s*')
+                branch_re = r"(?<=\[" + branch + "\])\s*(.*)"
+                branch_search = re.search(branch_re, subject)
+                if branch_search:
+                    return "[" + branch + "] " + prefixes_re.sub(
+                        '', branch_search.group(0))
+    except ImportError:
+        pass
+
+    prefixes_re = re.compile(r'^\[[^\]]*\]\s*')
     return prefixes_re.sub('', subject)
 
 

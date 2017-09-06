@@ -1047,13 +1047,16 @@ def _on_revision_complete(sender, revision, **kwargs):
     if series.name == SERIES_DEFAULT_NAME:
         name = series.latest_revision().ordered_patches()[0].name
         n = re.compile(r'((\[.*\]\s?)*\[.*\w+.*'
-                       '(?P<comb_pref>\W+\d+\/\d+)+\s*\]\s?)'
+                       '(?P<comb_pref>(\[|,)+\d+\/\d+\s*)\]\s?)'
                        '|(?P<ind_pref>\[\d+\/\d+\]\s?)')
         if n.match(name):
             name = re.sub(
                 n.match(name).group("comb_pref") or
                 re.escape(n.match(name).group("ind_pref")),
                 '', name)
+        re.sub(r'\[\]', '', name)
+        re.sub(r'\[\[+', '\[', name)
+        re.sub(r'\]\]+', '\]', name)
         c = len(series.latest_revision().ordered_patches())
         # For one-patch series (1/1) without cover letter
         if c == 1:
