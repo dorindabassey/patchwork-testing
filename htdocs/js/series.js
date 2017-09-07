@@ -7,6 +7,8 @@ $(document).ready(function(){
     patchesInput=$( "input[name^='patches']" )
     seriesForms=document.getElementById('seriesForm')
     testsView=document.getElementById('tests_results')
+    covContent=document.getElementsByClassName('content')[0]
+    covTab=document.getElementById('cover-letter-tab')
     var patches = new Array()
     if ($( patchesInput[0] ).value){
         patches=json_decode($( patchesInput[0] ).value, true)
@@ -17,9 +19,16 @@ $(document).ready(function(){
     revTab.style.border='none'
     revTab.style.background='transparent'
     revTab.style.padding='15px'
-    coverView.style.display='block'
     patchView.style.display='none'
-    patchList.style.display='none'
+    if (covContent){
+        coverView.style.display='block'
+        patchList.style.display='none'
+    }
+    else{
+        covTab.innerHTML = '<a href="#" data-toggle="tooltip" title="No cover letter is available for this series.">Cover letter N/A</a>'
+        coverView.style.display='none'
+        patchList.style.display='block'
+    }
     seriesForms.style.display='none'
 
     document.getElementById('cover-letter-tab').onclick=function(){
