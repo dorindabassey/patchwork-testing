@@ -110,6 +110,7 @@ function toggle_headers(link_id, headers_id)
                 </th>
               {% endif %}
               <th>Name</th>
+              <th>Link</th>
               <th>Submitter</th>
               <th>State</th>
             </tr>
@@ -126,6 +127,9 @@ function toggle_headers(link_id, headers_id)
                 <td><a href="#" class="patch-link" data-toggle="tooltip" title="Click to view the patch at bottom section"
                      data-url="{% url 'patchwork.views.patch.patch' patch_id=patch.id %}"
                      >{{ patch.name|default:"[no subject]"|truncatechars:100 }}</a></td>
+                <td><a href="{% url 'patchwork.views.patch.patch' patch_id=patch.id %}"
+                     data-toggle="tooltip" title="Click to view the patch in a new tab"
+                     target="_blank">{{ patch.id }}</a></td>
                 <td>{{ patch.submitter|personify:project }}</td>
                 <td>{{ patch.state }}</td>
               <tr>
