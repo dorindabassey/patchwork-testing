@@ -9,6 +9,7 @@ $(document).ready(function(){
     testsView=document.getElementById('tests_results')
     covContent=document.getElementsByClassName('content')[0]
     covTab=document.getElementById('cover-letter-tab')
+    patchesTab=document.getElementById('patches-tab')
     var patches = new Array()
     if ($( patchesInput[0] ).value){
         patches=json_decode($( patchesInput[0] ).value, true)
@@ -21,17 +22,21 @@ $(document).ready(function(){
     revTab.style.padding='15px'
     patchView.style.display='none'
     if (covContent){
+        covTab.classList.add('active')
         coverView.style.display='block'
         patchList.style.display='none'
     }
     else{
         covTab.innerHTML = '<a href="#" data-toggle="tooltip" title="No cover letter is available for this series.">Cover letter N/A</a>'
+        patchesTab.classList.add('active')
         coverView.style.display='none'
         patchList.style.display='block'
     }
     seriesForms.style.display='none'
 
-    document.getElementById('cover-letter-tab').onclick=function(){
+    covTab.onclick=function(){
+        covTab.classList.add('active')
+        patchesTab.classList.remove('active')
         coverView.style.display='block'
         patchView.style.display='none'
         patchList.style.display='none'
@@ -41,7 +46,9 @@ $(document).ready(function(){
         }
     }
 
-    document.getElementById('patches-tab').onclick=function(){
+    patchesTab.onclick=function(){
+        covTab.classList.remove('active')
+        patchesTab.classList.add('active')
         coverView.style.display='none'
         patchList.style.display='block'
         patchView.style.display="none"
