@@ -9,7 +9,7 @@ set -eu
 #TODO: the state map should really live in the repo's git-config
 
 # Use semicolon as separator to allow for state names with spaces
-STATE_MAP="refs/heads/master:Accepted;refs/heads/master-next:Master Next;refs/heads/ross/mut:Master Under Test"
+STATE_MAP="refs/heads/master:Accepted;refs/heads/master-next:Master Next;refs/heads/ross/mut:Master Under Test;refs/heads/morty:morty-master;refs/heads/pyro:pyro-master;refs/heads/rocko:rocko-master"
 #
 # ignore all commits already present in these refs
 # e.g.,
