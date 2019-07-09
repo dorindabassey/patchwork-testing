@@ -212,7 +212,7 @@ class StateFilter(Filter):
                 selected = ' selected="true"'
 
             str += '<option value="%d" %s>%s</option>' % (
-                state.id, selected, state.name)
+                state.id, selected, escape(state.name))
         str += '</select>'
         return mark_safe(str)
 
